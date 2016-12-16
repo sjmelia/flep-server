@@ -1,4 +1,4 @@
-﻿namespace Flep.Tests
+﻿namespace Flep.Test
 {
     using System.Collections.Generic;
     using System.Linq;
