@@ -1,21 +1,17 @@
 namespace Flep
 {
     using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Threading.Tasks;
+    using ArrayOfBytes.BirdBranch;
+    using ArrayOfBytes.OAuth.Client;
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Logging;
-    using ArrayOfBytes.BirdBranch;
-    using ArrayOfBytes.OAuth.Client;
-    using Flep.Models;
 
     public class Startup
     {
-        public static readonly string StatisticsCategory = "Statistics";
+        public static readonly string MessagingCategory = "Messaging";
 
         public Startup(IHostingEnvironment env)
         {
@@ -30,7 +26,6 @@ namespace Flep
 
         public IConfigurationRoot Configuration { get; }
 
-        // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddMvc();
@@ -47,7 +42,6 @@ namespace Flep
             services.AddSingleton<IDataService, MongoDataService>();
         }
 
-        // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
         {
             loggerFactory.AddConsole(this.Configuration.GetSection("Logging"));
@@ -62,7 +56,7 @@ namespace Flep
                     oAuthInfoSection["AccessToken"],
                     oAuthInfoSection["AccessSecret"]);
                 Console.WriteLine("Found oauth section e.g. " + oAuthInfoSection["ConsumerKey"]);
-                loggerFactory.AddTwitterDirectMessage(oAuthInfo, "thesjmelia", (c, ll) => c == StatisticsCategory);
+                loggerFactory.AddTwitterDirectMessage(oAuthInfo, oAuthInfoSection["recipient"], (c, ll) => c == MessagingCategory);
             }
             else
             {
@@ -79,9 +73,9 @@ namespace Flep
 
             app.UseMvc(routes =>
                     {
-                    routes.MapRoute(
-                            name: "default",
-                            template: "{controller=Home}/{action=Index}/{id?}");
+                        routes.MapRoute(
+                                name: "default",
+                                template: "{controller=Home}/{action=Index}/{id?}");
                     });
         }
     }

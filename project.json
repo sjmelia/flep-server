@@ -37,7 +37,8 @@
     "debugType": "portable",
     "emitEntryPoint": true,
     "preserveCompilationContext": true,
-    "additionalArguments": [ "/ruleset:StyleCop.ruleset" ]
+    "additionalArguments": [ "/ruleset:StyleCop.ruleset" ],
+    "xmlDoc": true
   },
 
   "runtimeOptions": {

@@ -9,7 +9,9 @@ namespace Flep
 
     public class MongoDataService : IDataService
     {
-        private static readonly int DistanceInMeters = 8046;
+        private const string CollectionName = "Messages";
+
+        private static readonly int MetresPerMile = 8046;
 
         private MongoClient client;
 
@@ -19,13 +21,13 @@ namespace Flep
         {
             this.client = new MongoClient("mongodb://localhost:27017");
             this.db = this.client.GetDatabase("Messages");
-            if (!this.CollectionExists("Messages"))
+            if (!this.CollectionExists(CollectionName))
             {
-                this.db.CreateCollection("Messages");
+                this.db.CreateCollection(CollectionName);
                 var keys = Builders<Message>
                     .IndexKeys
                     .Geo2DSphere(x => x.Location);
-                this.db.GetCollection<Message>("Messages")
+                this.db.GetCollection<Message>(CollectionName)
                     .Indexes
                     .CreateOne(keys);
             }
@@ -42,10 +44,10 @@ namespace Flep
                 .Near(
                     x => x.Location,
                     geoJson,
-                    DistanceInMeters,
+                    MetresPerMile,
                     null);
 
-            return this.db.GetCollection<Message>("Messages")
+            return this.db.GetCollection<Message>(CollectionName)
                 .Find(filter)
                 .SortByDescending(x => x.DateSubmitted)
                 .ToList();
@@ -53,7 +55,7 @@ namespace Flep
 
         public void Add(Message msg)
         {
-            this.db.GetCollection<Message>("Messages").InsertOne(msg);
+            this.db.GetCollection<Message>(CollectionName).InsertOne(msg);
         }
 
         private bool CollectionExists(string collectionName)
@@ -62,29 +64,6 @@ namespace Flep
             var collections = this.db.ListCollections(
                     new ListCollectionsOptions { Filter = filter });
             return collections.ToList().Any();
-        }
-    }
-
-    public class MockDataService : IDataService
-    {
-        private List<Message> messages;
-
-        public MockDataService()
-        {
-            this.messages = new List<Message>();
-        }
-
-        public IEnumerable<Message> Get(Location point)
-        {
-            return this.messages;
-        }
-
-        public void Add(Message msg)
-        {
-            this.messages.Add(msg);
-            this.messages = this.messages
-                .OrderByDescending(m => m.DateSubmitted)
-                .ToList();
         }
     }
 }

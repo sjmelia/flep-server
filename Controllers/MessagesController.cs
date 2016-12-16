@@ -3,14 +3,14 @@ namespace Flep.Controllers
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using System.Threading.Tasks;
+    using Dto;
     using Flep.Models;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.Extensions.Logging;
 
     public class MessagesController : Controller
     {
-        private ILogger statisticsLogger;
+        private ILogger messagingLogger;
         private IDataService dataService;
 
         public MessagesController(
@@ -18,15 +18,14 @@ namespace Flep.Controllers
                 ILoggerFactory loggerFactory)
         {
             this.dataService = dataService;
-            this.statisticsLogger = loggerFactory.CreateLogger(Startup.StatisticsCategory);
+            this.messagingLogger = loggerFactory.CreateLogger(Startup.MessagingCategory);
         }
 
         [HttpPost]
-        public IActionResult Index([FromBody]MessageDto msgDto)
+        public IActionResult Index([FromBody]PostMessageDto msgDto)
         {
-            Console.WriteLine("Post to " + msgDto.Body);
-            this.statisticsLogger.LogInformation("Flep post: " + msgDto.Body);
-            Console.WriteLine("Wrote to log");
+            this.messagingLogger.LogInformation("Flep post: " + msgDto.Body);
+
             var msg = msgDto.ToMessage();
             msg.DateSubmitted = DateTime.Now;
             this.dataService.Add(msg);
@@ -36,15 +35,8 @@ namespace Flep.Controllers
         [HttpGet]
         public IEnumerable<GetMessageDto> Index(double latitude, double longitude)
         {
-            Console.WriteLine($"Query for {latitude} {longitude}");
-            Location point = new Location()
-            {
-                type = "Point",
-                coordinates = new double[] { longitude, latitude }
-            };
-
-            return this.dataService.Get(point)
-                .Select(m => m.ToGetMessage());
+            var point = new Location("Point", new[] { longitude, latitude });
+            return this.dataService.Get(point).Select(m => m.ToGetMessage());
         }
     }
 }
